@@ -38,5 +38,18 @@ namespace ElasticSearchExample.MVC.Services
             var result = await _blogRepository.SaveAsync(newBlog);
             return result != null;
         }
+
+        public async Task<List<BlogListViewModel>> SearchAsync(string searhText = "docker")
+        {
+            var result = await _blogRepository.SearchAsync(searhText);
+            var viewResult = result.Select(x => new BlogListViewModel
+            {
+                Content = x.Content,
+                Title = x.Title,
+                Created = x.Created.ToShortDateString() ?? "N/A",
+                Tags = x.Tags != null ? string.Join(", ", x.Tags) : "No Tags"
+            }).ToList();
+            return viewResult;
+        }
     }
 }

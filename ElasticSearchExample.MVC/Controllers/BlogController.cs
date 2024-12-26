@@ -42,5 +42,13 @@ namespace ElasticSearchExample.MVC.Controllers
             return RedirectToAction(nameof(BlogController.Index));
         }
 
+        [HttpPost]
+        public async Task<IActionResult> Search(string searchText)
+        {
+            var result = await _blogService.SearchAsync(searchText);
+            ViewBag.SearchText = searchText;
+            return View(nameof(BlogController.Index), result);
+        }
+
     }
 }

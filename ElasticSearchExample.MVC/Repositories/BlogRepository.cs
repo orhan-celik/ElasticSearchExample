@@ -40,5 +40,25 @@ namespace ElasticSearchExample.MVC.Repositories
             return newBlog;
 
         }
+
+        public async Task<List<Blog>> SearchAsync(string serchText)
+        {
+            var searchResult = await _elasticsearchClient.SearchAsync<Blog>(s => s
+                .Index(IndexName)
+                .Size(1000)
+                .Query(q => q
+                    .Bool(b => b
+                        .Should(
+                            s => s.Match(m => m.Field(f => f.Content).Query(serchText).Fuzziness(new Fuzziness(2))),
+                            s => s.MatchBoolPrefix(p => p.Field(f => f.Title).Query(serchText).Fuzziness(new Fuzziness(2)))
+                        )
+                    )
+                )
+            );
+
+            foreach (var hit in searchResult.Hits) hit.Source.Id = hit.Id;
+            return searchResult.Documents.ToList();
+
+        }
     }
 }
