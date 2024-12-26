@@ -1,31 +1,35 @@
-# ElasticSearchExample
-.NET Core MVC ile Elastic Search Kullanımı - Library : Elastic Client
+# ElasticSearchExample  
+### .NET Core MVC ile Elastic Search Kullanımı  
+**Library:** Elastic Client  
 
+---
 
-1 - Blog şemasını elastic search üzerinde oluşturalım.
+## 1. Blog Şeması Oluşturma  
+ElasticSearch üzerinde bir blog şeması oluşturmak için aşağıdaki sorguyu kullanabilirsiniz:  
 
-PUT blog
+```json
+PUT blog 
 {
   "mappings": {
     "properties": {
-      "title":{
+      "title": {
         "type": "text",
         "fields": {
-          "keyword":{
-            "type":"keyword"
+          "keyword": {
+            "type": "keyword"
           }
         }
       },
-      "content":{
+      "content": {
         "type": "text"
       },
-      "user_id":{
+      "user_id": {
         "type": "keyword"
       },
-      "tags":{
+      "tags": {
         "type": "keyword"
       },
-      "created":{
+      "created": {
         "type": "date"
       }
     }
