@@ -7,6 +7,19 @@
 
 <h1>Blog Listesi</h1>
 
+    <form asp-action="Search" method="post">
+    <div class="row my-3">
+        <div class="col-md-11">
+            <div class="form-group">
+                <input type="text" name="searchText" value="@ViewBag.SearchText" class="form-control form-control-sm" required />
+            </div>
+        </div>
+        <div class="col-md-1">
+            <button type="submit" class="btn btn-sm btn-warning">Ara</button>
+        </div>
+    </div>
+</form>
+
 <p>
     <a asp-action="Create" class="btn btn-sm btn-success">Yeni Oluştur</a>
 </p>
