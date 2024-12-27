@@ -28,6 +28,8 @@ namespace ElasticSearchExample.MVC.Repositories
                 return new List<Blog>();
             }
 
+            foreach (var hit in response.Hits) hit.Source.Id = hit.Id;
+
             return response.Hits.Select(hit => hit.Source).ToList();
         }
 
@@ -58,6 +60,15 @@ namespace ElasticSearchExample.MVC.Repositories
 
             foreach (var hit in searchResult.Hits) hit.Source.Id = hit.Id;
             return searchResult.Documents.ToList();
+
+        }
+
+        public async Task<Blog?> GetById(string id)
+        {
+            var response = await _elasticsearchClient.GetAsync<Blog>(id, x => x.Index(IndexName));
+            if (!response.Found || !response.IsValidResponse) return null;
+            response.Source.Id = response.Id;
+            return response.Source;
 
         }
     }
