@@ -50,5 +50,13 @@ namespace ElasticSearchExample.MVC.Controllers
             return View(nameof(BlogController.Index), result);
         }
 
+        [HttpGet]
+        [Route("Blog/Details/{id}")]
+        public async Task<IActionResult> Details(string id)
+        {
+            var result = await _blogService.GetById(id);
+            return View(result);
+        }
+
     }
 }

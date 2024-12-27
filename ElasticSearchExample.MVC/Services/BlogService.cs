@@ -18,6 +18,7 @@ namespace ElasticSearchExample.MVC.Services
             var result = await _blogRepository.GetAllAsync();
             var viewResult = result.Select(x => new BlogListViewModel
             {
+                Id = x.Id,
                 Content = x.Content,
                 Title = x.Title,
                 Created = x.Created.ToShortDateString() ?? "N/A", // Null kontrolü eklendi
@@ -39,17 +40,33 @@ namespace ElasticSearchExample.MVC.Services
             return result != null;
         }
 
-        public async Task<List<BlogListViewModel>> SearchAsync(string searhText = "docker")
+        public async Task<List<BlogListViewModel>> SearchAsync(string searhText)
         {
             var result = await _blogRepository.SearchAsync(searhText);
             var viewResult = result.Select(x => new BlogListViewModel
             {
+                Id = x.Id,
                 Content = x.Content,
                 Title = x.Title,
                 Created = x.Created.ToShortDateString() ?? "N/A",
                 Tags = x.Tags != null ? string.Join(", ", x.Tags) : "No Tags"
             }).ToList();
             return viewResult;
+        }
+
+        public async Task<BlogListViewModel> GetById(string id)
+        {
+            var result = await _blogRepository.GetById(id);
+            if (result == null) return null;
+            var blogResult = new BlogListViewModel
+            {
+                Id = result.Id,
+                Content = result.Content,
+                Title = result.Title,
+                Created = result.Created.ToShortDateString() ?? string.Empty,
+                Tags = result.Tags != null ? string.Join(", ", result.Tags) : "No Tags"
+            };
+            return blogResult;
         }
     }
 }
