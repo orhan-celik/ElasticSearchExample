@@ -58,5 +58,13 @@ namespace ElasticSearchExample.MVC.Controllers
             return View(result);
         }
 
+        [HttpGet]
+        [Route("Blog/Delete/{id}")]
+        public async Task<IActionResult> Delete(string id)
+        {
+            await _blogService.DeleteAsync(id);
+            return RedirectToAction("Index");
+        }
+
     }
 }

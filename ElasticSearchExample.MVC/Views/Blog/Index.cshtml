@@ -48,7 +48,7 @@
                 @Html.DisplayFor(modelItem => item.Title)
             </td>
             <td>
-                @(item.Content.Length > 100 ? item.Content.Substring(0, 100) + "..." : item.Content)
+                @(item.Content.Length > 50 ? item.Content.Substring(0, 50) + "..." : item.Content)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Tags)
@@ -58,7 +58,8 @@
             </td>
             <td>
                 <a asp-controller="Blog" asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Detay</a>
-                @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
+                <a asp-controller="Blog" asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger"
+                       onclick="if (!confirm('Silmek istediğinize emin misiniz?')) return false;">Sil</a>
             </td>
         </tr>
 }

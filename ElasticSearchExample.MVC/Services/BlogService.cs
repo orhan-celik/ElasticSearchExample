@@ -68,5 +68,12 @@ namespace ElasticSearchExample.MVC.Services
             };
             return blogResult;
         }
+
+        public async Task<bool?> DeleteAsync(string id)
+        {
+            var blog = await _blogRepository.GetById(id);
+            if (blog is null) return null;
+            return await _blogRepository.DeleteAsync(id);
+        }
     }
 }

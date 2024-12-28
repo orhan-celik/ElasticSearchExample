@@ -69,7 +69,12 @@ namespace ElasticSearchExample.MVC.Repositories
             if (!response.Found || !response.IsValidResponse) return null;
             response.Source.Id = response.Id;
             return response.Source;
+        }
 
+        public async Task<bool> DeleteAsync(string id)
+        {
+            var response = await _elasticsearchClient.DeleteAsync<Blog>(id, x => x.Index(IndexName));
+            return response.IsSuccess();
         }
     }
 }
