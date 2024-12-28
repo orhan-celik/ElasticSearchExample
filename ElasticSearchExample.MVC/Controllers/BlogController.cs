@@ -1,4 +1,5 @@
-﻿using ElasticSearchExample.MVC.Services;
+﻿using ElasticSearchExample.MVC.Models;
+using ElasticSearchExample.MVC.Services;
 using ElasticSearchExample.MVC.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
@@ -64,6 +65,17 @@ namespace ElasticSearchExample.MVC.Controllers
         {
             await _blogService.DeleteAsync(id);
             return RedirectToAction("Index");
+        }
+
+        [HttpGet]
+        [Route("advance-blog-list-and-search")]
+        public async Task<IActionResult> AdvanceListSearch([FromQuery] BlogAdvanceSearchPageViewModel request)
+        {
+            var (blogList, totalCount, pageLinkCount) = await _blogService.AdvanceSearchAsync(request.Search, request.Page, request.PageSize);
+            request.TotalCount = totalCount;
+            request.PageLinkCount = pageLinkCount;
+            request.List = blogList;
+            return View(request);
         }
 
     }

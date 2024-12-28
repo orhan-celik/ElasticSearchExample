@@ -1,6 +1,7 @@
 ﻿using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.QueryDsl;
 using ElasticSearchExample.MVC.Models;
+using System.Drawing.Printing;
 
 namespace ElasticSearchExample.MVC.Repositories
 {
@@ -75,6 +76,109 @@ namespace ElasticSearchExample.MVC.Repositories
         {
             var response = await _elasticsearchClient.DeleteAsync<Blog>(id, x => x.Index(IndexName));
             return response.IsSuccess();
+        }
+
+        public async Task<(List<Blog> list, long totalCount)> AdvanceSearchAsync(BlogAdvanceSearchViewModel searchModel, int page, int pageSize)
+        {
+            List<Action<QueryDescriptor<Blog>>> listQuery = new();
+
+            // Search Model Boş Gelirse
+            if (searchModel is null)
+            {
+                Action<QueryDescriptor<Blog>> query = (q) => q.MatchAll(m => new MatchAllQuery());
+                listQuery.Add(query);
+                return await SearchResultDate(listQuery, page, pageSize);
+            }
+
+            // Id alanı dolu ise
+            if (!String.IsNullOrEmpty(searchModel.Id))
+            {
+                Action<QueryDescriptor<Blog>> query = (q) => q.Term(t => t.Field(f => f.Id).Value(searchModel.Id));
+                listQuery.Add(query);
+            }
+
+            // Title Alanı Dolu ise
+            if (!String.IsNullOrEmpty(searchModel.Title))
+            {
+                Action<QueryDescriptor<Blog>> query = (q) => q
+                    .Match(m => m
+                    .Field(f => f.Title)
+                    .Query(searchModel.Title)
+                    .Fuzziness(new Fuzziness(2)));
+                listQuery.Add(query);
+            }
+
+            // Content Alanı Dolu ise
+            if (!String.IsNullOrEmpty(searchModel.Content))
+            {
+                Action<QueryDescriptor<Blog>> query = (q) => q
+                    .Match(m => m
+                    .Field(f => f.Content)
+                    .Query(searchModel.Content)
+                    .Fuzziness(new Fuzziness(2)));
+                listQuery.Add(query);
+            }
+
+            // Oluşturulma tarihi başlangıcı dolu ise
+            if (searchModel.CreatedStart.HasValue)
+            {
+
+                // Tarihi UTC formatına çevirmek için DateTime'ı UTC'ye dönüştürüyoruz
+                string formattedDate = searchModel.CreatedStart.Value.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+                Action<QueryDescriptor<Blog>> query = (q) => q
+                .Range(r => r
+                    .DateRange(dr => dr
+                        .Field(f => f.Created)
+                        .Gte(formattedDate)
+                    )
+                );
+                listQuery.Add(query);
+            }
+
+            // Oluşturulma tarihi bitişi dolu ise
+            if (searchModel.CreatedEnd.HasValue)
+            {
+
+                // Tarihi UTC formatına çevirmek için DateTime'ı UTC'ye dönüştürüyoruz
+                string formattedDate = searchModel.CreatedEnd.Value.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+                Action<QueryDescriptor<Blog>> query = (q) => q
+                .Range(r => r
+                    .DateRange(dr => dr
+                        .Field(f => f.Created)
+                        .Lte(formattedDate)
+                    )
+                );
+                listQuery.Add(query);
+            }
+
+            // listQuery içerisinde hiç bir şey yok ise
+            if (!listQuery.Any())
+            {
+                Action<QueryDescriptor<Blog>> query = (q) => q.MatchAll(m => new MatchAllQuery());
+                listQuery.Add(query);
+            }
+
+            return await SearchResultDate(listQuery, page, pageSize);
+        }
+
+        private async Task<(List<Blog> list, long totalCount)> SearchResultDate(List<Action<QueryDescriptor<Blog>>> listQuery, int page, int pageSize)
+        {
+            // Sayfalama kaçtan başlayacak
+            var pageFrom = (page - 1) * pageSize;
+
+            var result = await _elasticsearchClient.SearchAsync<Blog>(s => s
+                .Index(IndexName)
+            .From(pageFrom)
+                .Size(pageSize)
+                .Query(q => q
+                    .Bool(b => b
+                        .Must(listQuery.ToArray()))));
+
+            foreach (var hit in result.Hits) hit.Source.Id = hit.Id;
+
+            return (list: result.Documents.ToList(), totalCount: result.Total);
         }
     }
 }
