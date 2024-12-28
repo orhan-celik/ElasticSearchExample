@@ -1,0 +1,128 @@
+﻿@model ElasticSearchExample.MVC.Models.BlogAdvanceSearchPageViewModel
+
+@{
+    ViewData["Title"] = "AdvanceListSearch";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>AdvanceListSearch</h1>
+
+<h4>BlogAdvanceSearchViewModel</h4>
+<hr />
+<div class="row">
+    <div class="col-md-3">
+        <form asp-action="AdvanceListSearch" method="get">
+            <div class="form-group">
+                <label asp-for="@Model.Search.Id" class="control-label"></label>
+                <input asp-for="@Model.Search.Id" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label asp-for="@Model.Search.Title" class="control-label"></label>
+                <input asp-for="@Model.Search.Title" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label asp-for="@Model.Search.Content" class="control-label"></label>
+                <input asp-for="@Model.Search.Content" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label asp-for="@Model.Search.CreatedStart" class="control-label"></label>
+                <input asp-for="@Model.Search.CreatedStart" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label asp-for="@Model.Search.CreatedEnd" class="control-label"></label>
+                <input asp-for="@Model.Search.CreatedEnd" class="form-control" />
+            </div>
+            <div class="form-group pt-2">
+                <input type="submit" value="Ara" class="btn btn-primary" />
+                <input type="reset" value="Temizle" class="btn btn-warning" />
+            </div>
+        </form>
+    </div>
+    <div class="col-md-9">
+
+        @if (Model.TotalCount > 0)
+        {
+            <div class="alert alert-info">Bulunan toplam Kayıt sayısı : @Model.TotalCount</div>
+
+            <table class="table table-sm mt-2">
+                <thead>
+                    <tr>
+                        <th>
+                            @Html.DisplayNameFor(model => model.List.FirstOrDefault().Title)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.List.FirstOrDefault().Content)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.List.FirstOrDefault().Tags)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.List.FirstOrDefault().Created)
+                        </th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.List)
+                    {
+                        <tr>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Title)
+                            </td>
+                            <td>
+                                @(item.Content.Length > 50 ? item.Content.Substring(0, 50) + "..." : item.Content)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Tags)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Created)
+                            </td>
+                            <td>
+                                <a asp-controller="Blog" asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Detay</a>
+                                <a asp-controller="Blog" asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger"
+                                   onclick="if (!confirm('Silmek istediğinize emin misiniz?')) return false;">Sil</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            @if (Model.PageLinkCount > 1)
+            {
+                <nav aria-label="Page navigation example">
+                    <ul class="pagination">
+                        @if (Model.Page > 1)
+                        {
+                            <li class="page-item"><a class="page-link" href="@Model.CreatePageUrl(Context.Request,1,Model.PageSize)">First</a></li>
+                            <li class="page-item"><a class="page-link" href="@Model.CreatePageUrl(Context.Request,(Model.Page - 1),Model.PageSize)">Previous</a></li>
+                        }
+                        @for (var i = 1; i <= Model.PageLinkCount; i++)
+                        {
+                            <li class="page-item @(i == Model.Page ? "active" : "")">
+                                <a class="page-link" href="@Model.CreatePageUrl(Context.Request,i,Model.PageSize)">
+                                    @i
+                                </a>
+                            </li>
+                        }
+                        @if(Model.Page < Model.PageLinkCount){
+                            <li class="page-item"><a class="page-link" href="@Model.CreatePageUrl(Context.Request,(Model.Page + 1),Model.PageSize)">Next</a></li>
+                            <li class="page-item"><a class="page-link" href="@Model.CreatePageUrl(Context.Request,(int)Model.PageLinkCount,Model.PageSize)">Last</a></li>
+                        }
+                        
+                    </ul>
+                </nav>
+            }
+
+
+        }
+
+
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

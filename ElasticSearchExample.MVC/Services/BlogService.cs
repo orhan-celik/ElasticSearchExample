@@ -1,4 +1,5 @@
-﻿using ElasticSearchExample.MVC.Models;
+﻿using Elastic.Clients.Elasticsearch;
+using ElasticSearchExample.MVC.Models;
 using ElasticSearchExample.MVC.Repositories;
 using ElasticSearchExample.MVC.ViewModels;
 
@@ -74,6 +75,22 @@ namespace ElasticSearchExample.MVC.Services
             var blog = await _blogRepository.GetById(id);
             if (blog is null) return null;
             return await _blogRepository.DeleteAsync(id);
+        }
+
+        public async Task<(List<BlogListViewModel> list, long totalCount, long pageLinkCount)> AdvanceSearchAsync(BlogAdvanceSearchViewModel searchModel, int page, int pageSize)
+        {
+            var (list, totalCount) = await _blogRepository.AdvanceSearchAsync(searchModel, page, pageSize);
+            var pageLinkCount = (totalCount % pageSize) == 0 ? totalCount / pageSize : (totalCount / pageSize) + 1;
+            var blogList = list.Select(x => new BlogListViewModel
+            {
+                Id = x.Id,
+                Content = x.Content,
+                Title = x.Title,
+                Created = x.Created.ToShortDateString() ?? "N/A", // Null kontrolü eklendi
+                Tags = x.Tags != null ? string.Join(", ", x.Tags) : "No Tags" // Tags birleştirilerek dönüştürüldü
+            }).ToList();
+
+            return (list: blogList, totalCount, pageLinkCount);
         }
     }
 }
