@@ -1,4 +1,5 @@
 using ElasticSearchExample.MVC.Extensions;
+using ElasticSearchExample.MVC.Mapping;
 using ElasticSearchExample.MVC.Repositories;
 using ElasticSearchExample.MVC.Services;
 
@@ -12,6 +13,9 @@ builder.Services.AddElasticSearch(builder.Configuration);
 
 builder.Services.AddScoped<BlogRepository>();
 builder.Services.AddScoped<BlogService>();
+
+// Automapper ekliyoruz.
+builder.Services.AddAutoMapper(typeof(BlogMapping).Assembly);
 
 var app = builder.Build();
 

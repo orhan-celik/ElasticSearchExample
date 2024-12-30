@@ -1,4 +1,4 @@
-﻿using Elastic.Clients.Elasticsearch;
+﻿using AutoMapper;
 using ElasticSearchExample.MVC.Models;
 using ElasticSearchExample.MVC.Repositories;
 using ElasticSearchExample.MVC.ViewModels;
@@ -8,35 +8,24 @@ namespace ElasticSearchExample.MVC.Services
     public class BlogService
     {
         private readonly BlogRepository _blogRepository;
+        private readonly IMapper _mapper;
 
-        public BlogService(BlogRepository blogRepository)
+        public BlogService(BlogRepository blogRepository, IMapper mapper)
         {
             _blogRepository = blogRepository;
+            _mapper = mapper;
         }
 
         public async Task<List<BlogListViewModel>> GetAllAsync()
         {
             var result = await _blogRepository.GetAllAsync();
-            var viewResult = result.Select(x => new BlogListViewModel
-            {
-                Id = x.Id,
-                Content = x.Content,
-                Title = x.Title,
-                Created = x.Created.ToShortDateString() ?? "N/A", // Null kontrolü eklendi
-                Tags = x.Tags != null ? string.Join(", ", x.Tags) : "No Tags" // Tags birleştirilerek dönüştürüldü
-            }).ToList();
-            return viewResult;
+            var blogList = result.Select(blog => _mapper.Map<BlogListViewModel>(blog)).ToList();
+            return blogList;
         }
 
         public async Task<bool> SaveAsync(BlogCreateViewModel model)
         {
-            var newBlog = new Blog
-            {
-                Title = model.Title,
-                Content = model.Content,
-                Tags = model.Tags.Split(","),
-                UserId = Guid.NewGuid()
-            };
+            var newBlog = _mapper.Map<Blog>(model);
             var result = await _blogRepository.SaveAsync(newBlog);
             return result != null;
         }
@@ -44,14 +33,7 @@ namespace ElasticSearchExample.MVC.Services
         public async Task<List<BlogListViewModel>> SearchAsync(string searhText)
         {
             var result = await _blogRepository.SearchAsync(searhText);
-            var viewResult = result.Select(x => new BlogListViewModel
-            {
-                Id = x.Id,
-                Content = x.Content,
-                Title = x.Title,
-                Created = x.Created.ToShortDateString() ?? "N/A",
-                Tags = x.Tags != null ? string.Join(", ", x.Tags) : "No Tags"
-            }).ToList();
+            var viewResult = result.Select(x => _mapper.Map<BlogListViewModel>(x)).ToList();
             return viewResult;
         }
 
@@ -59,14 +41,7 @@ namespace ElasticSearchExample.MVC.Services
         {
             var result = await _blogRepository.GetById(id);
             if (result == null) return null;
-            var blogResult = new BlogListViewModel
-            {
-                Id = result.Id,
-                Content = result.Content,
-                Title = result.Title,
-                Created = result.Created.ToShortDateString() ?? string.Empty,
-                Tags = result.Tags != null ? string.Join(", ", result.Tags) : "No Tags"
-            };
+            var blogResult = _mapper.Map<BlogListViewModel>(result);
             return blogResult;
         }
 
@@ -81,15 +56,7 @@ namespace ElasticSearchExample.MVC.Services
         {
             var (list, totalCount) = await _blogRepository.AdvanceSearchAsync(searchModel, page, pageSize);
             var pageLinkCount = (totalCount % pageSize) == 0 ? totalCount / pageSize : (totalCount / pageSize) + 1;
-            var blogList = list.Select(x => new BlogListViewModel
-            {
-                Id = x.Id,
-                Content = x.Content,
-                Title = x.Title,
-                Created = x.Created.ToShortDateString() ?? "N/A", // Null kontrolü eklendi
-                Tags = x.Tags != null ? string.Join(", ", x.Tags) : "No Tags" // Tags birleştirilerek dönüştürüldü
-            }).ToList();
-
+            var blogList = list.Select(blog => _mapper.Map<BlogListViewModel>(blog)).ToList();
             return (list: blogList, totalCount, pageLinkCount);
         }
     }
